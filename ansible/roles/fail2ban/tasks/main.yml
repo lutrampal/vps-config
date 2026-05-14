@@ -14,6 +14,15 @@
     mode: "0644"
   notify: Restart fail2ban
 
+- name: Configure fail2ban Nginx jail
+  ansible.builtin.template:
+    src: nginx.local.j2
+    dest: /etc/fail2ban/jail.d/nginx.local
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart fail2ban
+
 - name: Ensure fail2ban service is enabled and running
   ansible.builtin.service:
     name: fail2ban

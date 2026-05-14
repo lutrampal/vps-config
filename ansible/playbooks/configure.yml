@@ -1,0 +1,6 @@
+---
+- name: Configure VPS for personal use
+  hosts: vps
+  become: true
+  roles:
+    - auto_update

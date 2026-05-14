@@ -7,3 +7,4 @@
     - firewall
     - fail2ban
     - sshd_hardening
+    - nginx

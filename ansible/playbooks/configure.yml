@@ -6,3 +6,4 @@
     - auto_update
     - firewall
     - fail2ban
+    - sshd_hardening

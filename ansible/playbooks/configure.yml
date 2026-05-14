@@ -5,3 +5,4 @@
   roles:
     - auto_update
     - firewall
+    - fail2ban

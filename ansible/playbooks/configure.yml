@@ -4,3 +4,4 @@
   become: true
   roles:
     - auto_update
+    - firewall

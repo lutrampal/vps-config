@@ -1,0 +1,10 @@
+[sshd]
+enabled = true
+port = {{ fail2ban_ssh_port }}
+backend = systemd
+logpath = %(sshd_log)s
+maxretry = {{ fail2ban_maxretry }}
+findtime = {{ fail2ban_findtime }}
+bantime = {{ fail2ban_bantime }}
+banaction = ufw
+ignoreip = {{ fail2ban_ignoreip | join(' ') }}

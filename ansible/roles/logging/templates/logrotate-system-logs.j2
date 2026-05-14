@@ -1,0 +1,23 @@
+# Managed by Ansible
+/var/log/syslog
+/var/log/auth.log
+/var/log/kern.log
+/var/log/daemon.log
+/var/log/user.log
+/var/log/nginx/*.log
+/var/log/fail2ban.log
+{
+    monthly
+    rotate 6
+    maxsize 1G
+    missingok
+    notifempty
+    compress
+    delaycompress
+    dateext
+    sharedscripts
+    create 0640 syslog adm
+    postrotate
+        systemctl kill -s HUP rsyslog.service >/dev/null 2>&1 || true
+    endscript
+}

@@ -1,0 +1,10 @@
+---
+certbot_domain: "{{ ansible_host | default(inventory_hostname) }}"
+certbot_dns_propagation_seconds: 90
+
+certbot_ovh_endpoint: ovh-eu
+certbot_ovh_application_key: ""
+certbot_ovh_application_secret: ""
+certbot_ovh_consumer_key: ""
+
+certbot_credentials_path: /root/.secrets/certbot/ovh.ini

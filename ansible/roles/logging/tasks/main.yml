@@ -1,0 +1,66 @@
+---
+- name: Install logging packages
+  ansible.builtin.apt:
+    name:
+      - rsyslog
+      - logrotate
+    state: present
+    update_cache: true
+
+- name: Ensure persistent journal directory exists
+  ansible.builtin.file:
+    path: /var/log/journal
+    state: directory
+    owner: root
+    group: systemd-journal
+    mode: "02755"
+
+- name: Ensure journald config directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d/
+    state: directory
+    owner: root
+    group: systemd-journal
+    mode: "02755"
+
+- name: Configure journald retention and limits
+  ansible.builtin.template:
+    src: journald.conf.j2
+    dest: /etc/systemd/journald.conf.d/99-logging.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart journald
+
+- name: Configure rsyslog defaults
+  ansible.builtin.template:
+    src: rsyslog.conf.j2
+    dest: /etc/rsyslog.d/20-logging.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart rsyslog
+
+- name: Validate rsyslog configuration
+  ansible.builtin.command: rsyslogd -N1
+  changed_when: false
+
+- name: Configure logrotate for system logs
+  ansible.builtin.template:
+    src: logrotate-system-logs.j2
+    dest: /etc/logrotate.d/system-logs
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure journald is enabled and running
+  ansible.builtin.service:
+    name: systemd-journald
+    enabled: true
+    state: started
+
+- name: Ensure rsyslog is enabled and running
+  ansible.builtin.service:
+    name: rsyslog
+    enabled: true
+    state: started

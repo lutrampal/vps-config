@@ -1,0 +1,79 @@
+---
+- name: Validate required Certbot and OVH variables
+  ansible.builtin.assert:
+    that:
+      - certbot_domain | length > 0
+      - email_address | default('') | length > 0
+      - certbot_ovh_application_key | length > 0
+      - certbot_ovh_application_secret | length > 0
+      - certbot_ovh_consumer_key | length > 0
+    fail_msg: >-
+      Missing required variables for certbot OVH wildcard certificate.
+      Set certbot_domain, email_address and OVH API credentials.
+
+- name: Install certbot and python pip
+  ansible.builtin.apt:
+    name:
+      - certbot
+      - python3-pip
+    state: present
+    update_cache: true
+
+- name: Install OVH DNS plugin for certbot via pip
+  ansible.builtin.pip:
+    name: certbot-dns-ovh
+    executable: pip3
+    extra_args: --break-system-packages
+
+- name: Ensure certbot credentials directory exists
+  ansible.builtin.file:
+    path: "{{ certbot_credentials_path | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Install OVH credentials file for certbot
+  ansible.builtin.template:
+    src: ovh.ini.j2
+    dest: "{{ certbot_credentials_path }}"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Request wildcard certificate via OVH DNS challenge
+  ansible.builtin.command:
+    argv:
+      - certbot
+      - certonly
+      - --non-interactive
+      - --agree-tos
+      - --email
+      - "{{ email_address }}"
+      - --dns-ovh
+      - --dns-ovh-credentials
+      - "{{ certbot_credentials_path }}"
+      - --dns-ovh-propagation-seconds
+      - "{{ certbot_dns_propagation_seconds | string }}"
+      - --cert-name
+      - "{{ certbot_domain }}"
+      - --keep-until-expiring
+      - -d
+      - "{{ certbot_domain }}"
+      - -d
+      - "*.{{ certbot_domain }}"
+    creates: "/etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem"
+
+- name: Install renewal deploy hook to reload nginx
+  ansible.builtin.template:
+    src: reload-nginx.sh.j2
+    dest: /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Ensure certbot timer is enabled and running
+  ansible.builtin.service:
+    name: certbot.timer
+    enabled: true
+    state: started

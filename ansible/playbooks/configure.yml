@@ -1,0 +1,12 @@
+---
+- name: Configure VPS for personal use
+  hosts: vps
+  become: true
+  roles:
+    - auto_update
+    - logging
+    - firewall
+    - fail2ban
+    - sshd_hardening
+    - nginx
+    - certbot

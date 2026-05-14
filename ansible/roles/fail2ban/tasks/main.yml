@@ -5,6 +5,15 @@
     state: present
     update_cache: true
 
+- name: Configure fail2ban logging target
+  ansible.builtin.template:
+    src: fail2ban.local.j2
+    dest: /etc/fail2ban/fail2ban.local
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart fail2ban
+
 - name: Configure fail2ban SSH jail
   ansible.builtin.template:
     src: sshd.local.j2

@@ -4,6 +4,7 @@
   become: true
   roles:
     - auto_update
+    - logging
     - firewall
     - fail2ban
     - sshd_hardening

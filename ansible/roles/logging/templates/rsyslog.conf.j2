@@ -1,0 +1,8 @@
+# Managed by Ansible
+
+# Keep local disk-backed queues so short outages do not lose messages.
+$WorkDirectory /var/spool/rsyslog
+$ActionQueueType LinkedList
+$ActionQueueFileName srvrule
+$ActionResumeRetryCount -1
+$ActionQueueSaveOnShutdown on

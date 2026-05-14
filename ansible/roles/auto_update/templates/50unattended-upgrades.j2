@@ -9,6 +9,6 @@ Unattended-Upgrade::MinimalSteps "true";
 Unattended-Upgrade::Remove-Unused-Dependencies "true";
 Unattended-Upgrade::Automatic-Reboot "true";
 Unattended-Upgrade::Automatic-Reboot-Time "03:00";
-{% if auto_update_mail | length > 0 %}
-Unattended-Upgrade::Mail "{{ auto_update_mail }}";
+{% if email_address | default('') | length > 0 %}
+Unattended-Upgrade::Mail "{{ email_address }}";
 {% endif %}

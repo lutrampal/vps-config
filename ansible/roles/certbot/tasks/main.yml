@@ -3,13 +3,13 @@
   ansible.builtin.assert:
     that:
       - certbot_domain | length > 0
-      - certbot_email | length > 0
+      - email_address | default('') | length > 0
       - certbot_ovh_application_key | length > 0
       - certbot_ovh_application_secret | length > 0
       - certbot_ovh_consumer_key | length > 0
     fail_msg: >-
       Missing required variables for certbot OVH wildcard certificate.
-      Set certbot_domain, certbot_email and OVH API credentials.
+      Set certbot_domain, email_address and OVH API credentials.
 
 - name: Install certbot and python pip
   ansible.builtin.apt:
@@ -49,7 +49,7 @@
       - --non-interactive
       - --agree-tos
       - --email
-      - "{{ certbot_email }}"
+      - "{{ email_address }}"
       - --dns-ovh
       - --dns-ovh-credentials
       - "{{ certbot_credentials_path }}"

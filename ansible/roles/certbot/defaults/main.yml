@@ -1,6 +1,5 @@
 ---
 certbot_domain: "{{ ansible_host | default(inventory_hostname) }}"
-certbot_email: ""
 certbot_dns_propagation_seconds: 90
 
 certbot_ovh_endpoint: ovh-eu

@@ -8,3 +8,4 @@
     - fail2ban
     - sshd_hardening
     - nginx
+    - certbot

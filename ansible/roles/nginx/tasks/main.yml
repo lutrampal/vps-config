@@ -25,10 +25,25 @@
     mode: "0644"
   notify: Reload nginx
 
+- name: Deploy Foundry site config
+  ansible.builtin.template:
+    src: foundry.conf.j2
+    dest: /etc/nginx/sites-available/foundry
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+
 - name: Ensure default site is enabled
   ansible.builtin.file:
     src: /etc/nginx/sites-available/default
     dest: /etc/nginx/sites-enabled/default
+    state: link
+
+- name: Ensure Foundry site is enabled
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/foundry
+    dest: /etc/nginx/sites-enabled/foundry
     state: link
 
 - name: Validate full nginx configuration

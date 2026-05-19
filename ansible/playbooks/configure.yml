@@ -8,5 +8,6 @@
     - firewall
     - fail2ban
     - sshd_hardening
+    - foundry_vtt
     - nginx
     - certbot

@@ -1,0 +1,14 @@
+---
+foundry_vtt_user: foundryvtt
+foundry_vtt_group: foundryvtt
+
+foundry_vtt_install_dir: /opt/foundry
+foundry_vtt_data_dir: /srv/foundry/data
+
+foundry_vtt_bind_address: 127.0.0.1
+foundry_vtt_host_port: 30000
+foundry_vtt_container_port: 30000
+
+foundry_vtt_username: ""
+foundry_vtt_password: ""
+foundry_vtt_admin_key: ""

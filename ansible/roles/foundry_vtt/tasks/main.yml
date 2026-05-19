@@ -1,0 +1,131 @@
+---
+- name: Validate Foundry download credentials are configured
+  ansible.builtin.assert:
+    that:
+      - >-
+        (foundry_vtt_username | length > 0) and
+        (foundry_vtt_password | length > 0)
+    fail_msg: >-
+      Foundry requires both foundry_vtt_username and foundry_vtt_password.
+      Set them in an encrypted vars file (ansible-vault).
+
+- name: Install Docker engine and Compose plugin
+  block:
+    - name: Install Docker engine and Compose plugin package
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+  rescue:
+    - name: Install Docker engine and legacy docker-compose package
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose
+        state: present
+        update_cache: true
+
+- name: Ensure Docker service is enabled and running
+  ansible.builtin.service:
+    name: docker
+    enabled: true
+    state: started
+
+- name: Ensure Foundry group exists
+  ansible.builtin.group:
+    name: "{{ foundry_vtt_group }}"
+    state: present
+
+- name: Ensure Foundry user exists and can access Docker
+  ansible.builtin.user:
+    name: "{{ foundry_vtt_user }}"
+    group: "{{ foundry_vtt_group }}"
+    groups:
+      - docker
+    append: true
+    system: true
+    create_home: false
+    shell: /usr/sbin/nologin
+    state: present
+
+- name: Ensure Foundry compose directory exists
+  ansible.builtin.file:
+    path: "{{ foundry_vtt_install_dir }}"
+    state: directory
+    owner: "{{ foundry_vtt_user }}"
+    group: "{{ foundry_vtt_group }}"
+    mode: "0750"
+
+- name: Ensure Foundry data directory exists
+  ansible.builtin.file:
+    path: "{{ foundry_vtt_data_dir }}"
+    state: directory
+    owner: "{{ foundry_vtt_user }}"
+    group: "{{ foundry_vtt_group }}"
+    mode: "0750"
+
+- name: Deploy Foundry compose file
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ foundry_vtt_install_dir }}/compose.yml"
+    owner: "{{ foundry_vtt_user }}"
+    group: "{{ foundry_vtt_group }}"
+    mode: "0640"
+
+- name: Deploy Foundry secrets file
+  ansible.builtin.template:
+    src: secrets.json.j2
+    dest: "{{ foundry_vtt_install_dir }}/secrets.json"
+    owner: "{{ foundry_vtt_user }}"
+    group: "{{ foundry_vtt_group }}"
+    mode: "0600"
+  no_log: true
+
+- name: Check whether docker compose plugin is available
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - version
+  become: true
+  become_user: "{{ foundry_vtt_user }}"
+  register: foundry_compose_plugin_check
+  changed_when: false
+  failed_when: false
+
+- name: Pull and run Foundry stack using docker compose plugin
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - up
+      - --detach
+    chdir: "{{ foundry_vtt_install_dir }}"
+  become: true
+  become_user: "{{ foundry_vtt_user }}"
+  register: foundry_compose_up
+  when: foundry_compose_plugin_check.rc == 0
+  changed_when: >-
+    ('Pulling' in foundry_compose_up.stdout) or
+    ('Creating' in foundry_compose_up.stdout) or
+    ('Recreating' in foundry_compose_up.stdout) or
+    ('Starting' in foundry_compose_up.stdout)
+
+- name: Pull and run Foundry stack using docker-compose
+  ansible.builtin.command:
+    argv:
+      - docker-compose
+      - up
+      - --detach
+    chdir: "{{ foundry_vtt_install_dir }}"
+  become: true
+  become_user: "{{ foundry_vtt_user }}"
+  register: foundry_compose_up_legacy
+  when: foundry_compose_plugin_check.rc != 0
+  changed_when: >-
+    ('Pulling' in foundry_compose_up_legacy.stdout) or
+    ('Creating' in foundry_compose_up_legacy.stdout) or
+    ('Recreating' in foundry_compose_up_legacy.stdout) or
+    ('Starting' in foundry_compose_up_legacy.stdout)

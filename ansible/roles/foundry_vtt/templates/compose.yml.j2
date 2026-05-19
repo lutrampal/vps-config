@@ -1,0 +1,30 @@
+---
+secrets:
+  config_json:
+    file: ./secrets.json
+
+services:
+  foundry:
+    image: "docker.io/felddy/foundryvtt:14"
+    container_name: "foundryvtt"
+    hostname: "foundryvtt-{{ inventory_hostname | regex_replace('[^A-Za-z0-9-]', '-') }}"
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: {{ foundry_vtt_data_dir | to_json }}
+        target: /data
+    environment:
+      TZ: CET
+      CONTAINER_PRESERVE_CONFIG: "true"
+      FOUNDRY_COMPRESS_WEBSOCKET: "true"
+      FOUNDRY_MINIFY_STATIC_FILES: "true"
+      FOUNDRY_TELEMETRY: "false"
+      FOUNDRY_HOSTNAME: {{ foundry_vtt_domain | to_json }}
+      FOUNDRY_IP_DISCOVERY: "false"
+      FOUNDRY_PROXY_SSL: "true"
+      FOUNDRY_PROXY_PORT: "443"
+    ports:
+      - "{{ foundry_vtt_bind_address }}:{{ foundry_vtt_host_port }}:{{ foundry_vtt_container_port }}"
+    secrets:
+      - source: config_json
+        target: config.json

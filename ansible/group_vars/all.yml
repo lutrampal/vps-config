@@ -1,2 +1,4 @@
 ---
 email_address: ""
+
+foundry_vtt_domain: "foundryvtt.{{ ansible_host }}"

@@ -1,0 +1,68 @@
+---
+- name: Validate required WebDAV variables
+  ansible.builtin.assert:
+    that:
+      - webdav_domain | length > 0
+      - webdav_auth_username | length > 0
+      - webdav_auth_password_hash | length > 0
+    fail_msg: >-
+      Missing required WebDAV settings. Set webdav_auth_username and
+      webdav_auth_password_hash (htpasswd-compatible hash)
+      before running this role.
+
+- name: Install WebDAV nginx extension package
+  ansible.builtin.apt:
+    name: libnginx-mod-http-dav-ext
+    state: present
+    update_cache: true
+
+- name: Ensure WebDAV root directory exists
+  ansible.builtin.file:
+    path: "{{ webdav_root_dir }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0750"
+
+- name: Ensure WebDAV data directory exists
+  ansible.builtin.file:
+    path: "{{ webdav_root_dir }}/data"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0750"
+
+- name: Install WebDAV htpasswd file
+  ansible.builtin.copy:
+    dest: /etc/nginx/.htpasswd-webdav
+    content: "{{ webdav_auth_username }}:{{ webdav_auth_password_hash }}\n"
+    owner: root
+    group: www-data
+    mode: "0640"
+  notify: Reload nginx
+
+- name: Deploy WebDAV nginx site configuration
+  ansible.builtin.template:
+    src: webdav.conf.j2
+    dest: /etc/nginx/sites-available/webdav.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+
+- name: Ensure WebDAV site is enabled
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/webdav.conf
+    dest: /etc/nginx/sites-enabled/webdav.conf
+    state: link
+  notify: Reload nginx
+
+- name: Validate full nginx configuration
+  ansible.builtin.command: nginx -t
+  changed_when: false
+
+- name: Ensure nginx is enabled and running
+  ansible.builtin.service:
+    name: nginx
+    enabled: true
+    state: started

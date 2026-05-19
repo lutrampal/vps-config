@@ -10,3 +10,4 @@
     - sshd_hardening
     - nginx
     - certbot
+    - webdav

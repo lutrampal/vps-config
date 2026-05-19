@@ -1,0 +1,7 @@
+---
+webdav_domain: webdav.lutrampal.cloud
+
+webdav_root_dir: /var/www/webdav
+
+webdav_auth_username: lutrampal
+webdav_auth_password_hash: ""

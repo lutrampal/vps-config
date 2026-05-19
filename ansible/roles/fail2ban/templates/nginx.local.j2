@@ -17,3 +17,13 @@ maxretry = 10
 findtime = 10m
 bantime = 10m
 banaction = ufw
+
+[nginx-webdav-auth]
+enabled = true
+port = http,https
+filter = nginx-http-auth
+logpath = /var/log/nginx/webdav.error.log
+maxretry = 10
+findtime = 10m
+bantime = 10m
+banaction = ufw

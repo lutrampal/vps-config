@@ -1,2 +1,50 @@
 # vps-config
+
 VPS setup for personal stuff
+
+## Run the configure playbook
+
+### Required variables
+
+| Variable | Purpose |
+| --- | --- |
+| `email_address` | SSL certificate and upgrade email |
+| `certbot_ovh_application_key` | OVH API application key |
+| `certbot_ovh_application_secret` | OVH API application secret |
+| `certbot_ovh_consumer_key` | OVH API consumer key with access to the certificate domain's DNS zone |
+| `ansible_port` | SSH port to connect to on the target system |
+| `webdav_auth_password_hash` | Hashed password for WebDAV service, generated with `htpasswd -nB -C 12 $webdav_auth_username` (remove the *username:* part) |
+
+Configure `ansible_host` and `ansible_user` in
+[ansible/inventory/hosts.yml](ansible/inventory/hosts.yml) for the target VPS.
+
+### Supply the variables securely
+
+From the repository root, create an encrypted variables file:
+
+```sh
+ansible-vault create ~/vps-config.vault.yml
+```
+
+Enter a Vault password, then put the following YAML in the editor, replacing
+all example values with your own:
+
+```yaml
+---
+ansible_port: 22
+
+email_address: "you@example.com"
+
+certbot_domain: "example.com"
+certbot_ovh_application_key: "YOUR_OVH_APPLICATION_KEY"
+certbot_ovh_application_secret: "YOUR_OVH_APPLICATION_SECRET"
+certbot_ovh_consumer_key: "YOUR_OVH_CONSUMER_KEY"
+
+webdav_auth_password_hash: "HASHED_PASSWORD"
+```
+
+Then run:
+
+```sh
+ansible-playbook playbooks/configure.yml --extra-vars @group_vars/all.yml --extra-vars "@$HOME/vps-config.vault.yml" --ask-vault-pass
+```

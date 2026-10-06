@@ -14,6 +14,9 @@ VPS setup for personal stuff
 | `certbot_ovh_consumer_key` | OVH API consumer key with access to the certificate domain's DNS zone |
 | `ansible_port` | SSH port to connect to on the target system |
 | `webdav_auth_password_hash` | Hashed password for WebDAV service, generated with `htpasswd -nB -C 12 $webdav_auth_username` (remove the *username:* part) |
+| `foundry_vtt_username` | Foundry account username or email with a purchased software license |
+| `foundry_vtt_password` | Foundry account password used to download the server |
+| `foundry_vtt_admin_key` | Password protecting the Foundry administration interface |
 
 Configure `ansible_host` and `ansible_user` in
 [ansible/inventory/hosts.yml](ansible/inventory/hosts.yml) for the target VPS.
@@ -41,6 +44,10 @@ certbot_ovh_application_secret: "YOUR_OVH_APPLICATION_SECRET"
 certbot_ovh_consumer_key: "YOUR_OVH_CONSUMER_KEY"
 
 webdav_auth_password_hash: "HASHED_PASSWORD"
+
+foundry_vtt_username: "YOUR_FOUNDRY_USERNAME"
+foundry_vtt_password: "YOUR_FOUNDRY_PASSWORD"
+foundry_vtt_admin_key: "YOUR_FOUNDRY_ADMIN_PASSWORD"
 ```
 
 ### Dependencies

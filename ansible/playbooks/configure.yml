@@ -9,6 +9,7 @@
     - fail2ban
     - sshd_hardening
     - docker
-    - nginx
     - certbot
+    - nginx
+    - foundry_vtt
     - webdav

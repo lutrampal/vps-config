@@ -43,8 +43,10 @@ certbot_ovh_consumer_key: "YOUR_OVH_CONSUMER_KEY"
 webdav_auth_password_hash: "HASHED_PASSWORD"
 ```
 
-Then run:
+### Dependencies
 
-```sh
-ansible-playbook playbooks/configure.yml --extra-vars @group_vars/all.yml --extra-vars "@$HOME/vps-config.vault.yml" --ask-vault-pass
-```
+Install the collections declared in [ansible/requirements.yml](ansible/requirements.yml),
+then run the playbook from the Ansible directory so its configuration is loaded:
+
+1. Install collections with `ansible-galaxy collection install -r requirements.yml`.
+2. Run `ansible-playbook playbooks/configure.yml --extra-vars @group_vars/all.yml --extra-vars "@$HOME/vps-config.vault.yml" --ask-vault-pass`.

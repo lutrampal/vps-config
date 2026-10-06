@@ -8,6 +8,7 @@
     - firewall
     - fail2ban
     - sshd_hardening
+    - docker
     - nginx
     - certbot
     - webdav

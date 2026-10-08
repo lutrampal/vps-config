@@ -1,0 +1,37 @@
+# Managed by Ansible
+services:
+  foundry:
+    image: ghcr.io/felddy/foundryvtt:14
+    hostname: {{ foundry_vtt_domain | to_json }}
+    user: "{{ foundry_vtt_uid }}:{{ foundry_vtt_gid }}"
+    restart: unless-stopped
+    environment:
+      FOUNDRY_HOSTNAME: {{ foundry_vtt_domain | to_json }}
+      FOUNDRY_PROXY_SSL: "true"
+      FOUNDRY_PROXY_PORT: "443"
+      FOUNDRY_IP_DISCOVERY: "false"
+    ports:
+      - target: 30000
+        published: {{ foundry_vtt_host_port | string | to_json }}
+        host_ip: "127.0.0.1"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: {{ foundry_vtt_data_dir | to_json }}
+        target: /data
+    secrets:
+      - source: config_json
+        target: config.json
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+secrets:
+  config_json:
+    file: ./secrets.json

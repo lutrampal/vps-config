@@ -1,0 +1,79 @@
+---
+- name: Validate required Foundry credentials
+  ansible.builtin.assert:
+    that:
+      - foundry_vtt_username is string and foundry_vtt_username | length > 0
+      - foundry_vtt_password is string and foundry_vtt_password | length > 0
+      - foundry_vtt_admin_key is string and foundry_vtt_admin_key | length > 0
+    fail_msg: >-
+      Set foundry_vtt_username, foundry_vtt_password and foundry_vtt_admin_key
+      in Ansible Vault. The account must own a Foundry VTT license.
+
+- name: Create private Foundry Compose project directory
+  ansible.builtin.file:
+    path: "{{ foundry_vtt_install_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Create persistent Foundry data directory
+  ansible.builtin.file:
+    path: "{{ foundry_vtt_data_dir }}"
+    state: directory
+    owner: "{{ foundry_vtt_uid | string }}"
+    group: "{{ foundry_vtt_gid | string }}"
+    mode: "0750"
+
+- name: Install Foundry container secrets
+  ansible.builtin.template:
+    src: secrets.json.j2
+    dest: "{{ foundry_vtt_install_dir }}/secrets.json"
+    # Compose file-backed secrets retain host ownership and permissions.
+    owner: "{{ foundry_vtt_uid | string }}"
+    group: "{{ foundry_vtt_gid | string }}"
+    mode: "0600"
+  register: foundry_vtt_secrets
+  no_log: true
+  diff: false
+
+- name: Deploy Foundry Compose configuration
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ foundry_vtt_install_dir }}/compose.yml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Start Foundry and wait for the image health check
+  community.docker.docker_compose_v2:
+    project_src: "{{ foundry_vtt_install_dir }}"
+    project_name: foundry
+    files:
+      - compose.yml
+    state: present
+    pull: "missing"
+    # Compose does not detect changes to the contents of file-backed secrets.
+    recreate: "{{ 'always' if foundry_vtt_secrets.changed else 'auto' }}"
+    wait: true
+    wait_timeout: 600
+
+- name: Deploy Foundry nginx site configuration
+  ansible.builtin.template:
+    src: foundry.conf.j2
+    dest: /etc/nginx/sites-available/foundry.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+
+- name: Enable Foundry nginx site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/foundry.conf
+    dest: /etc/nginx/sites-enabled/foundry.conf
+    state: link
+  notify: Reload nginx
+
+- name: Validate full nginx configuration
+  ansible.builtin.command: nginx -t
+  changed_when: false
